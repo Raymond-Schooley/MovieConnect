@@ -2,11 +2,11 @@ import csv
 import os
 
 #MUST CHANGE THESE
-imdbFile = 'C:\\Users\\stfclaptop\\Documents\\imdbDownload\\name.basics.tsv'
+imdbFile = 'C:\\...\\name.basics.tsv'
 #full path or sql command (ex: mysql)
-sqlLocation = 'C:\\Users\\stfclaptop\\Desktop\\new\\mariadb\\bin\\mysql.exe'
+sqlLocation = 'C:\\...\\mysql.exe'
 sqlUser = 'root'
-sqlPass = 'mypassword'
+sqlPass = '.....'
 
 #set up / clean database
 sqlPrefix = sqlLocation + ' -u ' + sqlUser + ' -p' + sqlPass + ' -e '
