@@ -2,3 +2,6 @@ TABLE NAME          DOWNLOAD LOCATION
 names_raw           https://datasets.imdbws.com/name.basics.tsv.gz
 movies_info_raw     https://datasets.imdbws.com/title.basics.tsv.gz
 movie_ratings_raw   https://datasets.imdbws.com/title.ratings.tsv.gz
+
+
+more info: http://www.imdb.com/interfaces/
