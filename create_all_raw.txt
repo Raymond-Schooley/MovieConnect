@@ -1,4 +1,4 @@
-# Names of actors
+# Names of actors\directors\etc.
 CREATE TABLE namebasics_raw (
 	nconst CHAR(9) NOT NULL PRIMARY KEY,
 	primaryName VARCHAR(128),
