@@ -30,7 +30,7 @@ CREATE TABLE titleprincipals_raw (
 	tconst CHAR(9) NOT NULL PRIMARY KEY,
 	principalCast VARCHAR(128)
 );
-LOAD DATA INFILE 'D:\\...\\title.principals.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
+LOAD DATA INFILE 'C:\\...\\title.principals.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
 
 
 # Ratings of titles
@@ -39,4 +39,4 @@ CREATE TABLE titleratings_raw (
 	averageRating FLOAT,
 	numVotes INT
 );
-LOAD DATA INFILE 'D:\\...\\title.ratings.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
+LOAD DATA INFILE 'C:\\...\\title.ratings.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
