@@ -25,7 +25,7 @@ CREATE TABLE titlebasics_raw (
 LOAD DATA INFILE 'C:\\...\\title.basics.tsv' REPLACE INTO TABLE titlebasics_raw IGNORE 1 LINES;
 
 
-# Lead cast members of titles
+# Lead actors\directors\etc. of titles
 CREATE TABLE titleprincipals_raw (
 	tconst CHAR(9) NOT NULL PRIMARY KEY,
 	principalCast VARCHAR(128)
