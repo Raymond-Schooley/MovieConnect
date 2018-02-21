@@ -1,0 +1,76 @@
+# Names of actors\directors\etc.
+DROP TABLE IF EXISTS namebasics_raw;
+CREATE TABLE namebasics_raw (
+  nconst CHAR(9) NOT NULL PRIMARY KEY,
+  primaryName VARCHAR(128),
+  birthYear INT,
+  deathYear INT,
+  primaryProfession VARCHAR(128),
+  knownForTitles VARCHAR(128)
+);
+LOAD DATA LOCAL INFILE '/home/ravschoo/Documents/TCSS445/Movies/MovieConnect/name.basics.tsv' REPLACE INTO TABLE namebasics_raw CHARACTER SET latin1 IGNORE 1 LINES;
+
+
+# Names\basic info of titles
+DROP TABLE IF EXISTS titlebasics_raw;
+CREATE TABLE titlebasics_raw (
+  tconst CHAR(9) NOT NULL PRIMARY KEY,
+  titleType VARCHAR(32),
+  primaryTitle VARCHAR(512),
+  originalTitle VARCHAR(512),
+  isAdult INT,
+  startYear INT,
+  endYear INT,
+  runtimeMinutes INT,
+  genres VARCHAR(32)
+);
+LOAD DATA LOCAL INFILE '/home/ravschoo/Documents/TCSS445/Movies/MovieConnect/title.basics.tsv' REPLACE INTO TABLE titlebasics_raw IGNORE 1 LINES;
+
+
+# Lead actors\directors\etc. of titles
+DROP TABLE IF EXISTS titleprincipals_raw;
+CREATE TABLE titleprincipals_raw (
+  tconst CHAR(9) NOT NULL PRIMARY KEY,
+  principalCast VARCHAR(128)
+);
+LOAD DATA LOCAL INFILE '/home/ravschoo/Documents/TCSS445/Movies/MovieConnect/title.principals.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
+
+
+# Ratings of titles
+DROP TABLE IF EXISTS titleratings_raw;
+CREATE TABLE titleratings_raw (
+  tconst CHAR(9),
+  averageRating FLOAT,
+  numVotes INT
+);
+LOAD DATA LOCAL INFILE '/home/ravschoo/Documents/TCSS445/Movies/MovieConnect/title.ratings.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
+
+
+
+#Create Movie table that represents movies with  a significant amount of votes.
+DROP TABLE IF EXISTS MOVIE;
+CREATE TABLE MOVIE SELECT tb.tconst Id, tb.primaryTitle Title, tb.isAdult IsAdult, tb.startYear StartYear, tb.endYear EndYear,
+                          tb.runtimeMinutes RuntimeMinutes, tb.genres Genres, tr.averageRating AverageRating
+                   FROM titleratings_raw tr, titlebasics_raw tb
+                   WHERE tr.tconst = tb.tconst
+                         AND tr.numVotes > 10000
+                         AND tb.titleType = 'movie';
+
+#Trim the prinipal people from movies that didn't make the cut for Movie1
+DROP TABLE IF EXISTS PRINCIPAL;
+CREATE TABLE PRINCIPAL SELECT tp.tconst Id, tp.principalCast PrincipalCast
+                       FROM MOVIE M, titleprincipals_raw tp
+                       WHERE M.Id = tp.tconst;
+
+
+#Create an Actor table with the only the actors who are mentioned in the principal cast of the
+#movies we are concerned with.
+DROP TABLE IF EXISTS PEOPLE;
+CREATE TABLE PEOPLE SELECT nb.nconst Id, nb.primaryName Name, nb.birthYear BirthYear, nb.deathYear DeathYear,
+                    nb.primaryProfession Profession
+                    FROM PRINCIPAL P LEFT OUTER JOIN namebasics_raw nb
+                    ON P.PrincipalCast LIKE CONCAT("%", nb.nconst, "%");
+
+ALTER TABLE MOVIE ADD PRIMARY KEY (Id);
+
+DESCRIBE MOVIE
