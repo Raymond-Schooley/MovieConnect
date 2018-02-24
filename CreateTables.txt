@@ -56,6 +56,9 @@ CREATE TABLE MOVIE SELECT tb.tconst Id, tb.primaryTitle Title, tb.isAdult IsAdul
                          AND tr.numVotes > 10000
                          AND tb.titleType = 'movie';
 
+#add the primary key to movie
+ALTER TABLE MOVIE ADD PRIMARY KEY (Id);
+
 #Trim the prinipal people from movies that didn't make the cut for Movie1
 DROP TABLE IF EXISTS PRINCIPAL;
 CREATE TABLE PRINCIPAL SELECT tp.tconst Id, tp.principalCast PrincipalCast
@@ -63,14 +66,41 @@ CREATE TABLE PRINCIPAL SELECT tp.tconst Id, tp.principalCast PrincipalCast
                        WHERE M.Id = tp.tconst;
 
 
-#Create an Actor table with the only the actors who are mentioned in the principal cast of the
-#movies we are concerned with.
-DROP TABLE IF EXISTS PEOPLE;
-CREATE TABLE PEOPLE SELECT nb.nconst Id, nb.primaryName Name, nb.birthYear BirthYear, nb.deathYear DeathYear,
-                    nb.primaryProfession Profession
-                    FROM PRINCIPAL P LEFT OUTER JOIN namebasics_raw nb
-                    ON P.PrincipalCast LIKE CONCAT("%", nb.nconst, "%");
+#Here we had to slow our roll.  The principal table contained reference to the movies
+#that we care about as well as the main people involved in making it.  The problem
+#was that the PrincipleCast column was a comma separated list of name ids.
+#It was not feasible to use this csv field to trim our big namebasics table, getting
+#rid of all the people not reference in the PrincipleCast of a movie we care about.
+# So we exported our Principal table as a tsv file and wrote a small python script
+#that created a csv. The new csv just took the movie Id and printed it and the
+#first person in PrincipalCast on one line.  Then the same movie id and the second
+#person on the second line.  Repeat this for all the movie person pairs and there
+#is the bridge table expressed as a csv file we can create now.
 
-ALTER TABLE MOVIE ADD PRIMARY KEY (Id);
+DROP TABLE IF EXISTS MOVIE_PERSON;
+CREATE TABLE MOVIE_PERSON (
+  MovieId CHAR(10),
+  PersonId CHAR(10),
+  PRIMARY KEY (MovieId, PersonId)
+);
+LOAD DATA LOCAL INFILE '/home/ravschoo/Documents/TCSS445/Movies/MovieConnect/EdgeList.tsv' REPLACE INTO TABLE MOVIE_PERSON;
 
-DESCRIBE MOVIE
+#Now MOVIE_PERSON only contains ids of person that we care about and we can use
+#this to trim the namebasics into Person table containing only vips.
+
+DROP TABLE IF EXISTS PERSON;
+CREATE TABLE PERSON (
+  PersonId CHAR(9) NOT NULL PRIMARY KEY,
+  PrimaryName VARCHAR(128),
+  BirthYear INT,
+  DeathYear INT,
+  PrimaryProfession VARCHAR(128),
+  KnownForTitles VARCHAR(128)
+);
+
+INSERT IGNORE INTO PERSON
+  SELECT nb.nconst PersonId, nb.primaryName PrimaryName, nb.birthYear BirthYear,
+          nb.deathYear DeathYear, nb.primaryProfession PrimaryProfession,
+          nb.knownForTitles KnownForTitles
+    FROM namebasics_raw nb, MOVIE_PERSON MP
+    WHERE nb.nconst = MP.PersonId;
