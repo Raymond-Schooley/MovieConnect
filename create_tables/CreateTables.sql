@@ -1,4 +1,22 @@
-# Names of actors\directors\etc.
+/*
+(1)
+Download these archives, extract them, and replace *LOCATION* in this script with the location of the extracted data.
+
+DOWNLOAD LOCATION										SUMMARY OF DATA										SIZE
+https://datasets.imdbws.com/title.basics.tsv.gz			show ID -> basic info of show						84 MB
+https://datasets.imdbws.com/title.ratings.tsv.gz		show ID -> IMDB rating summary						4 MB
+https://datasets.imdbws.com/title.principals.tsv.gz		show ID -> list of principal crew person IDs		230 MB
+https://datasets.imdbws.com/name.basics.tsv.gz			person ID -> basic info of person					158 MB
+
+More info: http://www.imdb.com/interfaces/
+*/
+
+
+/*
+(2)
+Create an sql table for each file and load all data into them
+*/
+# create table from name.basics.tsv/data.tsv
 DROP TABLE IF EXISTS namebasics_raw;
 CREATE TABLE namebasics_raw (
   nconst CHAR(9) NOT NULL PRIMARY KEY,
@@ -8,11 +26,10 @@ CREATE TABLE namebasics_raw (
   primaryProfession VARCHAR(128),
   knownForTitles VARCHAR(128)
 );
-LOAD DATA LOCAL INFILE '/home/ravschoo/Documents/TCSS445/Movies/MovieConnect/name.basics.tsv' REPLACE INTO TABLE namebasics_raw CHARACTER SET latin1 IGNORE 1 LINES;
+LOAD DATA LOCAL INFILE '*LOCATION*/name.basics.tsv/data.tsv' REPLACE INTO TABLE namebasics_raw CHARACTER SET latin1 IGNORE 1 LINES;
 
-
-# Names\basic info of titles
-DROP TABLE IF EXISTS titlebasics_raw;
+# create table from title.basics.tsv/data.tsv
+DROP TABLE IF EXISTS titlebasics_raw
 CREATE TABLE titlebasics_raw (
   tconst CHAR(9) NOT NULL PRIMARY KEY,
   titleType VARCHAR(32),
@@ -24,37 +41,40 @@ CREATE TABLE titlebasics_raw (
   runtimeMinutes INT,
   genres VARCHAR(32)
 );
-LOAD DATA LOCAL INFILE '/home/ravschoo/Documents/TCSS445/Movies/MovieConnect/title.basics.tsv' REPLACE INTO TABLE titlebasics_raw IGNORE 1 LINES;
+LOAD DATA LOCAL INFILE '*LOCATION*/title.basics.tsv/data.tsv' REPLACE INTO TABLE titlebasics_raw IGNORE 1 LINES;
 
 
-# Lead actors\directors\etc. of titles
-DROP TABLE IF EXISTS titleprincipals_raw;
+# create table from title.principals.tsv/data.tsv
+DROP TABLE IF EXISTS titleprincipals_raw
 CREATE TABLE titleprincipals_raw (
   tconst CHAR(9) NOT NULL PRIMARY KEY,
   principalCast VARCHAR(128)
 );
-LOAD DATA LOCAL INFILE '/home/ravschoo/Documents/TCSS445/Movies/MovieConnect/title.principals.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
+LOAD DATA LOCAL INFILE '*LOCATION*/title.principals.tsv/data.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
 
-
-# Ratings of titles
-DROP TABLE IF EXISTS titleratings_raw;
+# create table from title.ratings.tsv/data.tsv
+DROP TABLE IF EXISTS titleratings_raw
 CREATE TABLE titleratings_raw (
   tconst CHAR(9),
   averageRating FLOAT,
   numVotes INT
 );
-LOAD DATA LOCAL INFILE '/home/ravschoo/Documents/TCSS445/Movies/MovieConnect/title.ratings.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
+LOAD DATA LOCAL INFILE '*LOCATION*/title.ratings.tsv/data.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
 
 
-
-#Create Movie table that represents movies with  a significant amount of votes.
+/*
+(3)
+Trim and combine show tables?
+Trim person table?
+*/
+# Create a table of movies with a significant number of votes by combining titlebasics_raw and titleratings_raw.
 DROP TABLE IF EXISTS MOVIE;
 CREATE TABLE MOVIE SELECT tb.tconst Id, tb.primaryTitle PrimaryTitle, tb.originalTitle OriginalTitle, tb.endYear EndYear,
-                          tb.runtimeMinutes RuntimeMinutes, tb.genres Genres, tr.averageRating AverageRating, tr.numVotes Votes
-                   FROM titleratings_raw tr, titlebasics_raw tb
-                   WHERE tr.tconst = tb.tconst
-                         AND tr.numVotes > 10000
-                         AND tb.titleType = 'movie';
+	tb.runtimeMinutes RuntimeMinutes, tb.genres Genres, tr.averageRating AverageRating, tr.numVotes Votes
+	FROM titleratings_raw tr, titlebasics_raw tb
+	WHERE tr.tconst = tb.tconst
+		AND tr.numVotes > 10000
+		AND tb.titleType = 'movie';
 
 #add the primary key to movie
 ALTER TABLE MOVIE ADD PRIMARY KEY (Id);
