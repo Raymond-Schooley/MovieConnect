@@ -1,4 +1,4 @@
-SET @MinNumVotes = 50000;
+SET @MinNumVotes = 5000;
 SET @MaxActorsPerMovie = 10;
 
 DROP DATABASE IF EXISTS moviequiz;
