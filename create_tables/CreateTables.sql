@@ -1,5 +1,5 @@
-SET @MinNumVotes = 10000;
-SET @MaxImportance = 5;
+SET @MinNumVotes = 5000;
+SET @MaxActorsPerMovie = 10;
 
 DROP DATABASE IF EXISTS moviequiz;
 CREATE DATABASE moviequiz;
@@ -117,7 +117,7 @@ CREATE TABLE MovieActor
            CONVERT(SUBSTRING(tp.nconst, 3), INT) AS ActorID,
            tp.ordering AS Importance, tp.category AS Job, tp.characters
     FROM titleprincipals_raw tp
-    WHERE ordering <= @MaxImportance
+    WHERE ordering <= @MaxActorsPerMovie
           AND (category LIKE '%actor%' OR category LIKE '%actress%')
 ;
 /*
