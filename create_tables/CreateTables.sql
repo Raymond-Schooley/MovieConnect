@@ -9,7 +9,6 @@ USE moviequiz;
 /*
 (1)
 Download these archives, extract them, and replace *LOCATION* in this script with the parent directory of the extracted data.
-It is quicker to run the LOAD DATA INFILE commands in MariaDB directly because of the lack of network overhead.
 
 DOWNLOAD LOCATION										                  SUMMARY OF DATA										            SIZE
 https://datasets.imdbws.com/title.basics.tsv.gz       show ID -> basic info of show                 84 MB
@@ -37,7 +36,7 @@ CREATE TABLE namebasics_raw (
   primaryProfession VARCHAR(128),
   knownForTitles VARCHAR(128)
 );
-LOAD DATA INFILE '*LOCATION*/name.basics.tsv/data.tsv' REPLACE INTO TABLE namebasics_raw IGNORE 1 LINES;
+LOAD DATA INFILE 'C:/Users/walkhh/Downloads/name.basics.tsv/data.tsv' REPLACE INTO TABLE namebasics_raw IGNORE 1 LINES;
 
 # create table from title.basics.tsv/data.tsv
 DROP TABLE IF EXISTS titlebasics_raw;
@@ -52,7 +51,7 @@ CREATE TABLE titlebasics_raw (
   runtimeMinutes INT,
   genres VARCHAR(32)
 );
-LOAD DATA INFILE '*LOCATION*/title.basics.tsv/data.tsv' REPLACE INTO TABLE titlebasics_raw IGNORE 1 LINES;
+LOAD DATA INFILE 'C:/Users/walkhh/Downloads/title.basics.tsv/data.tsv' REPLACE INTO TABLE titlebasics_raw IGNORE 1 LINES;
 
 # create table from title.principals.tsv/data.tsv
 DROP TABLE IF EXISTS titleprincipals_raw;
@@ -64,7 +63,7 @@ CREATE TABLE titleprincipals_raw (
   job VARCHAR(512),
   characters VARCHAR(512)
 );
-LOAD DATA INFILE '*LOCATION*/title.principals.tsv/data.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
+LOAD DATA INFILE 'C:/Users/walkhh/Downloads/title.principals.tsv/data.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
 
 # create table from title.ratings.tsv/data.tsv
 DROP TABLE IF EXISTS titleratings_raw;
@@ -73,7 +72,7 @@ CREATE TABLE titleratings_raw (
   averageRating FLOAT,
   numVotes INT
 );
-LOAD DATA INFILE '*LOCATION*/title.ratings.tsv/data.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
+LOAD DATA INFILE 'C:/Users/walkhh/Downloads/title.ratings.tsv/data.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
 
 
 /*
@@ -113,7 +112,6 @@ Create MovieActor from titleprincipals_raw
 Keep only the top 5 actors from each movie
  */
 DROP TABLE IF EXISTS MovieActor;
-DROP TABLE IF EXISTS MovieActor;
 CREATE TABLE MovieActor
     SELECT CONVERT(SUBSTRING(tp.tconst, 3), INT) AS MovieID,
            CONVERT(SUBSTRING(tp.nconst, 3), INT) AS ActorID,
@@ -124,11 +122,10 @@ CREATE TABLE MovieActor
 ;
 /*
 Drop all duplicate (Same MovieID and ActorID) rows from MovieActor
-There are at least 1 instances of duplicate rows (MovieID 995411, ActorID 1075459).
+There is at least 1 instance of duplicate rows (MovieID 995411, ActorID 1075459).
  */
 ALTER IGNORE TABLE MovieActor
-  ADD UNIQUE INDEX idx_name (MovieID, ActorID)
-;
+  ADD UNIQUE INDEX movie_actor_index (MovieID, ActorID);
 /*
 Make MovieID, ActorID primary key after duplicates removed
  */
@@ -145,20 +142,23 @@ delete MovieActor relations that aren't in Movie
 (Keep only relations with highly-voted on movies)
  */
 DELETE FROM MovieActor
-WHERE MovieID NOT IN
-      (SELECT MovieID FROM Movie)
+WHERE NOT EXISTS(SELECT NULL
+                 FROM Movie m
+                 WHERE m.MovieID = MovieID)
 ;
 /*
 delete movies that aren't in the final MovieActor table
  */
 DELETE FROM Movie
-WHERE MovieID NOT IN
-      (SELECT MovieID FROM MovieActor)
+WHERE NOT EXISTS(SELECT NULL
+                 FROM MovieActor ma
+                 WHERE ma.MovieID = MovieID)
 ;
 /*
 delete actors that aren't in the final MovieActor table
  */
 DELETE FROM Actor
-WHERE ActorID NOT IN
-      (SELECT ActorID FROM MovieActor)
+WHERE NOT EXISTS(SELECT NULL
+                 FROM MovieActor ma
+                 WHERE ma.ActorID = ActorID)
 ;
