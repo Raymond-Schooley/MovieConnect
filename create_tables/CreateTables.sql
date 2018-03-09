@@ -36,7 +36,7 @@ CREATE TABLE namebasics_raw (
   primaryProfession VARCHAR(128),
   knownForTitles VARCHAR(128)
 );
-LOAD DATA INFILE 'C:/Users/walkhh/Downloads/name.basics.tsv/data.tsv' REPLACE INTO TABLE namebasics_raw IGNORE 1 LINES;
+LOAD DATA INFILE '*LOCATION*/name.basics.tsv/data.tsv' REPLACE INTO TABLE namebasics_raw IGNORE 1 LINES;
 
 # create table from title.basics.tsv/data.tsv
 DROP TABLE IF EXISTS titlebasics_raw;
@@ -51,7 +51,7 @@ CREATE TABLE titlebasics_raw (
   runtimeMinutes INT,
   genres VARCHAR(32)
 );
-LOAD DATA INFILE 'C:/Users/walkhh/Downloads/title.basics.tsv/data.tsv' REPLACE INTO TABLE titlebasics_raw IGNORE 1 LINES;
+LOAD DATA INFILE '*LOCATION*/title.basics.tsv/data.tsv' REPLACE INTO TABLE titlebasics_raw IGNORE 1 LINES;
 
 # create table from title.principals.tsv/data.tsv
 DROP TABLE IF EXISTS titleprincipals_raw;
@@ -63,7 +63,7 @@ CREATE TABLE titleprincipals_raw (
   job VARCHAR(512),
   characters VARCHAR(512)
 );
-LOAD DATA INFILE 'C:/Users/walkhh/Downloads/title.principals.tsv/data.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
+LOAD DATA INFILE '*LOCATION*/title.principals.tsv/data.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
 
 # create table from title.ratings.tsv/data.tsv
 DROP TABLE IF EXISTS titleratings_raw;
@@ -72,7 +72,7 @@ CREATE TABLE titleratings_raw (
   averageRating FLOAT,
   numVotes INT
 );
-LOAD DATA INFILE 'C:/Users/walkhh/Downloads/title.ratings.tsv/data.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
+LOAD DATA INFILE '*LOCATION*/title.ratings.tsv/data.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
 
 
 /*
