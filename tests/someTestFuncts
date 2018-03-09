@@ -1,0 +1,35 @@
+
+# Get actors starring in movie variable
+SET @movieAnyCase = 'The Matrix';
+SELECT m.originalTitle AS Movie_Name, m.primaryTitle AS Also_Known_As, a.primaryName AS Star, ma.Importance, ma.characters AS 'Role(s)'
+FROM MovieActor ma
+  LEFT JOIN Movie m
+    ON ma.MovieID = m.MovieID
+  LEFT JOIN Actor a
+    ON ma.ActorID = a.ActorID
+WHERE
+  (LOWER(primaryTitle) = LOWER(@movieAnyCase)
+   OR LOWER(originalTitle) = LOWER(@movieAnyCase))
+;
+
+
+SET @EasierTestNumVotes = 500000;
+# Get random movie from edgelist and get actors starring in it
+SET @RandomMovie =
+(SELECT MovieID
+ FROM MovieActor
+#  WHERE
+#    m.numVotes > @EasierTestNumVotes
+ ORDER BY RAND()
+ LIMIT 1);
+SELECT m.originalTitle AS Movie_Name, m.primaryTitle AS Also_Known_As, a.primaryName AS Star, ma.Importance, ma.characters AS 'Role(s)'
+FROM MovieActor ma
+  LEFT JOIN Movie m
+    ON ma.MovieID = m.MovieID
+  LEFT JOIN Actor a
+    ON ma.ActorID = a.ActorID
+WHERE
+  ma.MovieID = @RandomMovie
+#   AND
+#   m.numVotes > @EasierTestNumVotes
+;
