@@ -6,7 +6,7 @@ if(!isset($_SESSION)){
 }
 
 // SET $page_type = 'student','teacher','public'
-$page_type = 'quiz taker';
+$page_type = 'quizzer';
 require('inc.header.php');
 
 
@@ -16,16 +16,28 @@ if (!isset($db)) {
     $db = get_connection();
 }
 
+$q = $db->query("SELECT username
+      FROM USERS 
+      WHERE username = '".$_SESSION['username']."'");
 
+$qn = $q->fetch();
 
-$username = 'quiz taker';
+$username = $qn[0];
+$sql = $db->query("SELECT preferredName FROM USERS WHERE username = '".$_SESSION['username']."'");
+$pNameR = $sql->fetch();
+$preferredName = $pNameR[0];
+
+$sql = $db->query("SELECT type FROM USERS WHERE username = '".$_SESSION['username']."'");
+$stype = $sql->fetch();
+$type = $stype[0];
+
 
 $sql = "SELECT PrimaryTitle FROM MOVIE WHERE PrimaryTitle = 'Titanic'";
 
 $result = $db->query($sql);
 $name = $result->fetch();
 
-$sql = "SELECT FullName FROM ACTOR LIMIT 3";
+$sql = "SELECT FullName FROM ACTOR ORDER BY rand() LIMIT 3 ";
 $result = $db->query($sql);
 $actors = $result->fetchAll();
 
@@ -55,12 +67,12 @@ if(isset($_POST['D'])){
       <div class="col-sm-4">
         <ul class="nav nav-pills nav-stacked">
           <li role="presentation" class="active"><a href="Logout.php">Logout</a></li>
-
+          <li role="presentation" class="inactive"><a href="UpdateInfo.php">Update your information</a></li>
 
       </div>
       <div class="col-sm-12">
         <div class="panel panel-default">
-          <div class="panel-heading text-center panel-relative">Welcome, <?php echo $username; ?>. Are you ready to test your knowledge?</div>
+          <div class="panel-heading text-center panel-relative">Welcome, <?php echo $preferredName; ?>. Are you ready to test your knowledge?</div>
           <div class="text-center">
 
             <h3>Which actor is in the movie <?php echo $name[0];?></h3>

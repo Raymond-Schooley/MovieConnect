@@ -1,6 +1,8 @@
 <?php
 
 
+
+
 if (isset($_POST['login'])) // HANDLE THE FORM
 {
    
@@ -17,7 +19,7 @@ if (isset($_POST['login'])) // HANDLE THE FORM
     }
     
     // QUERY TO VALIDATE USER
-    $q = "SELECT username
+    $q = "SELECT type, username
            FROM USERS 
           WHERE username = '".$_POST['username']."'";
             
@@ -32,8 +34,10 @@ if (isset($_POST['login'])) // HANDLE THE FORM
     {
       //DATA RETURNED SETUP MY SESSION
       @session_start();
+      $_SESSION['type']   = $rr[0]['type'];
       $_SESSION['username']   = $rr[0]['username'];
-      
+ 
+
       
       // REDIRECT TO THE CORRECDT PORTAL
       $location = ($_SESSION['username'] == 'admin') ? "AdminInterface.php" : "QuizInterface.php";
@@ -44,6 +48,16 @@ if (isset($_POST['login'])) // HANDLE THE FORM
     }
   }
 }
+
+if(isset($_POST['signUp'])){
+  @session_start();
+  $_SESSION['username']   = 'guest';
+  $location = 'signUp.php';
+  header("Location: " .$location);
+
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -66,12 +80,13 @@ if (isset($_POST['login'])) // HANDLE THE FORM
 	
 	<form class="form-signin" role="form" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
 		<h4 class="form-signin-heading text-center">Please sign in</h4>
-		<input type="text" class="form-control" placeholder="Username" value="" name="username" required autofocus />
-		
-		
+		<input type="text" class="form-control" placeholder="Username" value="" name="username"/>
 		<button class="btn btn-lg btn-primary btn-block" type="submit" name="login">
 			Sign in
 		</button>
+    <button class="btn btn-lg btn-primary btn-block" type="submit" name="signUp">
+      Sign up
+    </button>
 	</form>
 </div>
   
