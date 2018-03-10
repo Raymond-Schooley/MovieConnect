@@ -100,8 +100,7 @@ CREATE TABLE Actor
       nb.primaryName, nb.birthYear, nb.deathYear,
            GETGENDER(nb.primaryProfession) AS Gender
     FROM namebasics_raw nb
-    WHERE (nb.primaryProfession LIKE '%actor%')
- # WHERE (nb.primaryProfession LIKE '%actor%' OR nb.primaryProfession LIKE '%actress%')
+   WHERE (nb.primaryProfession LIKE '%actor%' OR nb.primaryProfession LIKE '%actress%')
 ;
 ALTER TABLE Actor ADD PRIMARY KEY (ActorID);
 
@@ -134,8 +133,7 @@ CREATE TABLE MovieActor_temp
            tp.ordering AS Importance, tp.category AS Job, tp.characters
     FROM titleprincipals_raw tp
     WHERE ordering <= @MaxActorsPerMovie
-          AND (category LIKE '%actor%')
-          #AND (category LIKE '%actor%' OR category LIKE '%actress%')
+      AND (category LIKE '%actor%' OR category LIKE '%actress%')
 ;
 
 # Delete duplicate (MovieID, ActorID) in MovieActor
@@ -182,3 +180,4 @@ DELETE a FROM Actor a
   LEFT JOIN MovieActor ma ON ma.ActorID = a.ActorID
 WHERE ma.ActorID IS NULL
 ;
+
