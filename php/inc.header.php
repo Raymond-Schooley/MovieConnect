@@ -8,10 +8,13 @@ if(!isset($_SESSION['username']))
 {
   header("Location: Login.php");  
 }
+$page_type = $_SESSION['type'];
 
 // CHECK IF USER HAS RIGHTS TO THE PAGE
-if($page_type != 'public' && $page_type != $_SESSION['username'])
+if($page_type != 'public' && $page_type != $_SESSION['type'])
 {
+  var_dump($_SESSION['type']);
+  var_dump($page_type);
   echo '<p>Access Denied</p>';
   exit();
 }

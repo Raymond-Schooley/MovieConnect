@@ -36,11 +36,11 @@ if (isset($_POST['login'])) // HANDLE THE FORM
       @session_start();
       $_SESSION['type']   = $rr[0]['type'];
       $_SESSION['username']   = $rr[0]['username'];
- 
+      $_SESSION['numMovies'] = $db->query("SELECT");
 
       
       // REDIRECT TO THE CORRECDT PORTAL
-      $location = ($_SESSION['username'] == 'admin') ? "AdminInterface.php" : "QuizInterface.php";
+      $location = ($_SESSION['type'] == 'admin') ? "AdminInterface.php" : "QuizInterface.php";
 
       header("Location: " . $location);
     } else { // THROW ERROR

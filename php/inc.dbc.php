@@ -1,10 +1,10 @@
 <?php
 
 	function get_connection() {
-		$userid   = 'CHANGEME'; //Change this to yours
-		$password = 'CHANGEME'; //Change this to yours
+		$userid   = 'ravschoo'; //Change this to yours
+		$password = 'Gruntzle1'; //Change this to yours
 		$host     = 'cssgate.insttech.washington.edu';
-		$dbname   = 'CHANGEME'; //Change this to yours
+		$dbname   = 'ravschoo'; //Change this to yours
 		//jdbc:mysql://localhost:3306/tcss445
 		$dsn = 'mysql:host='.$host. ';dbname='. $dbname;
 		

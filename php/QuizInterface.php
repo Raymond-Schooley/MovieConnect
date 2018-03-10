@@ -10,6 +10,10 @@ $page_type = 'quizzer';
 require('inc.header.php');
 
 
+
+
+
+
 # CONNECT TO DATABASE TO GET STUENT INFO
 if (!isset($db)) {
     require_once('inc.dbc.php');
@@ -31,25 +35,17 @@ $sql = $db->query("SELECT type FROM USERS WHERE username = '".$_SESSION['usernam
 $stype = $sql->fetch();
 $type = $stype[0];
 
+if(isset($_POST['submit'])){
+  $location = "Quiz.php";
+  $_SESSION['lowYear'] = $_POST['lowYear'];
+  $_SESSION['highYear'] = $_POST['highYear'];
+  $_SESSION['difficulty']= $_POST['difficulty'];
+  $tempDif = $_SESSION['difficulty'];
+  $db->query("SET @DifficultyPercent = '$tempDif'");
+  header("Location: " .$location);
 
-$sql = "SELECT PrimaryTitle FROM MOVIE WHERE PrimaryTitle = 'Titanic'";
-
-$result = $db->query($sql);
-$name = $result->fetch();
-
-$sql = "SELECT FullName FROM ACTOR ORDER BY rand() LIMIT 3 ";
-$result = $db->query($sql);
-$actors = $result->fetchAll();
-
-if(isset($_POST['D'])){
-   $new_message = '<p class="alert-success">Correct</p>' ; 
-   echo $new_message;
-
-
-}else if(isset($_POST['A']) or isset($_POST['B']) or isset($_POST['C'])){
-  $new_message = '<p class="alert-success">Incorrect</p>' ; 
-  echo $new_message;
 }
+
 
 ?>
  
@@ -75,22 +71,20 @@ if(isset($_POST['D'])){
           <div class="panel-heading text-center panel-relative">Welcome, <?php echo $preferredName; ?>. Are you ready to test your knowledge?</div>
           <div class="text-center">
 
-            <h3>Which actor is in the movie <?php echo $name[0];?></h3>
-        		
+               <hr>
                 <form role="form" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
-                <div class="form-group">
-		        <button class="btn btn-sm btn-primary btn-default" type="submit" name="A">
-			       <?php echo $actors[0]['FullName']?>
+                  <div class="input-group">                    
+                    <input type="text" placeholder="enter year span" name="lowYear" class="form-control" />
+                    <span class = "input-group-addon">-</span>
+                    <input type="text" placeholder="enter year span" name="highYear" class="form-control" />
+                    <span class = "input-group-addon">-</span>
+                    <input type="text" placeholder="enter percentage difficulty (1 - 100)" name="difficulty" class="form-control" />
+                    
+                  </div>
+                  <hr>
+		        <button class="btn btn-sm btn-primary btn-default" type="submit" name="submit">
+			       submit
 		        </button>
-            <button class="btn btn-sm btn-primary btn-default" type="submit" name="B">
-             <?php echo $actors[1]['FullName'];?>
-            </button>
-            <button class="btn btn-sm btn-primary btn-default" type="submit" name="C">
-             <?php echo $actors[2]['FullName'];?>
-            </button>
-            <button class="btn btn-sm btn-primary btn-default" type="submit" name="D">
-             Leo DiCaprio
-            </button>
 		      </div>
             </form>
           </div>        

@@ -14,24 +14,36 @@ if(!isset($db))
 }
 
 
-$username = 'admin';
+$q = $db->query("SELECT username
+      FROM USERS 
+      WHERE username = '".$_SESSION['username']."'");
+
+$qn = $q->fetch();
+
+$username = $qn[0];
+$sql = $db->query("SELECT preferredName FROM USERS WHERE username = '".$_SESSION['username']."'");
+$pNameR = $sql->fetch();
+$preferredName = $pNameR[0];
+
+$sql = $db->query("SELECT type FROM USERS WHERE username = '".$_SESSION['username']."'");
+$stype = $sql->fetch();
+$type = $stype[0];
 
 
 if(isset($_POST['add'])){
-  $temp1 = $_POST['movieName'];
-  $temp2 = $_POST['runTime'];
-  $temp3 = $_POST['genre'];
-  $temp4 = $_POST['rating'];
+  $temp1 = $_POST['addUserName'];
+  $temp2 = $_POST['prefName'];
+  $temp3 = 'admin';
   
   
-  $db->query("INSERT INTO MOVIE (Id, PrimaryTitle, RuntimeMinutes, Genres, AverageRating) 
-                          VALUES ('testid','$temp1', '$temp2', '$temp3', '$temp4')");
+  
+  $db->query("INSERT INTO USERS VALUES ('$temp1','$temp2', '$temp3')");
   
 }
 
 if(isset($_POST['delete'])){
-  $temp = $_POST['movieName'];
-  $db->query("DELETE FROM MOVIE WHERE PrimaryTitle = '$temp'");
+  $temp = $_POST['delUserName'];
+  $db->query("DELETE FROM USERS WHERE username = '$temp'");
   
 }
 
@@ -98,25 +110,27 @@ if(isset($_GET['action']))
           </ul>    
 
       </div>
-      <div class="col-sm-12">
+      <div class="col-sm-8">
         <div class="panel panel-default">
-          <div class="panel-heading">Welcome, <?php echo $username; ?>.  Update Database Below</div>
+          <div class="panel-heading">Welcome, <?php echo $preferredName; ?>.  Update Database Below</div>
             <div class="panel-body">
                <hr>
                 <form role="form" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
                   <div class="input-group">                    
-                    <input type="text" placeholder="enter movie name" name="movieName" class="form-control" />
+                    <input type="text" placeholder="enter username to delete" name="delUserName" class="form-control" />
+                    
+                    
+                  </div>
+                  <span class = "input-group-addon">-</span>
+                    <div class="input-group">                    
+                    <input type="text" placeholder="enter username to add as admin" name="addUserName" class="form-control" />
                     <span class = "input-group-addon">-</span>
-                    <input type="text" placeholder="enter genre" name="genre" class="form-control" />
-                    <span class = "input-group-addon">-</span>
-                    <input type="text" placeholder="enter run time" name="runTime" class="form-control" />
-                    <span class = "input-group-addon">-</span>
-                    <input type="text" placeholder="enter rating" name="rating" class="form-control" />
+                    <input type="text" placeholder="enter preferred name" name="prefName" class="form-control" />
                     
                   </div>
                   <hr>
                   <div class = "text-center">
-                  <button class="form-group btn btn-lg btn-primary" type="submit" name="add" value="active">ADD</button>
+                  <button class="form-group btn btn-lg btn-primary" type="submit" name="add" value="active">ADD AS ADMIN</button>
                   <button class="form-group btn btn-lg" type="submit" name="delete" value="inactive">DELETE</button>   
                 </form>
                  
