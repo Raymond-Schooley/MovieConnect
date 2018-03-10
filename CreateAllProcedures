@@ -1,25 +1,9 @@
 use ravschoo;
 
 /*
-Must set these before running the procedures (from php or wherever)
+Quiz question procedures:
  */
-# Constant defaults for quiz settings
-SET @MinNumVotes = 10000; #Needs to be the same as the value used when trimming the tables
-SET @DefaultDifficultyPercent = 60;
-SET @DefaultMinMovieYear = 0;
-SET @DefaultMaxMovieYear = 9999;
-SET @DefaultMinRelatedness = 2;
-# Dynamic quiz settings, optionally set to non-default values by user
-SET @DifficultyPercent = @DefaultDifficultyPercent;
-SET @MinMovieYear = @DefaultMinMovieYear;
-SET @MaxMovieYear = @DefaultMaxMovieYear;
-SET @MinRelatedness = @DefaultMinRelatedness; #Ex: Min. movies 2 actors must star in to be related
-
-
-
-/*
-Questions:
- */
+ 
 # asks who was the lead star of a random movie
 DROP PROCEDURE IF EXISTS makeQuestionWhoWasLeadInRandMovie;
 CREATE PROCEDURE makeQuestionWhoWasLeadInRandMovie (OUT question VARCHAR(255),
