@@ -23,15 +23,16 @@ $sql = $db->query("SELECT type FROM USERS WHERE username = '".$_SESSION['usernam
 $stype = $sql->fetch();
 $type = $stype[0];
 
+$temp = $_SESSION['tenMovies'];
 
-$temp = $_SESSION['lowYear'];
-$temp2 = $_SESSION['highYear'];
+$sql= $db->query("CALL getMoviesByDecade('$temp')");
+$ten = $sql->fetchAll();
 
-$sql = "SELECT primaryTitle FROM Movie WHERE (startYear >= '$temp' AND startYear < '$temp2') OR startYear = '$temp' LIMIT 1  ";
-$result = $db->query($sql);
-$name = $result->fetch();
+$x = 0;
+$genTitle = $ten[$x]['primaryTitle'];
+$lowYear = $_SESSION['lowYear'];
 
-$sql = $db->query("CALL getMovieYearQuestion(@question, 'Caddyshack', 1980, @a2, @a3, @a4)");
+$sql = $db->query("CALL getMovieYearQuestion(@question, '$genTitle', $lowYear, @a2, @a3, @a4)");
 
 $temp = $db->query("SELECT @question, '1980',@a2, @a3, @a4");
 $temp2 = $temp->fetchAll();
@@ -42,13 +43,7 @@ $temp2 = $temp->fetchAll();
 //$sql = "SELECT primaryName FROM Actor ORDER BY rand() LIMIT 3 ";
 //$result = $db->query($sql);
 //$actors = $result->fetchAll();
-if(isset($_POST['D'])){
-   $new_message = '<p class="alert-success">Correct</p>' ; 
-   echo $new_message;
-}else if(isset($_POST['A']) or isset($_POST['B']) or isset($_POST['C'])){
-  $new_message = '<p class="alert-success">Incorrect</p>' ; 
-  echo $new_message;
-}
+
 ?>
  
 <body>
@@ -87,14 +82,20 @@ if(isset($_POST['D'])){
              <?php echo $temp2[0]['@a4'];?>
             </button>
             <button class="btn btn-sm btn-primary btn-default" type="submit" name="D">
-             <?php $temp = $db->query("SELECT startYear FROM Movie WHERE primaryTitle = 'Caddyshack'");
+             <?php $temp = $db->query("SELECT startYear FROM Movie WHERE primaryTitle = '$genTitle'");
                    $temp2 = $temp->fetch();
                    echo $temp2[0];
-
-
              ;?>
             </button>
           </div>
+                  <?php if(isset($_POST['D'])){
+                    $new_message = '<p class="alert-success">Correct</p>' ; 
+                    echo $new_message;
+                   }else if(isset($_POST['A']) or isset($_POST['B']) or isset($_POST['C'])){
+                    $new_message = '<p class="alert-success">Incorrect</p>' ; 
+                    echo $new_message;
+                   }
+                   ?>
             </form>
           </div>        
         </div>
