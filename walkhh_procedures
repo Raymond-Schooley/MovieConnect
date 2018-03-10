@@ -1,4 +1,5 @@
-SET @MinNumVotes = 100000;
+#Set these at program start to whatever (preferably user set!)
+SET @MinNumVotes = 50000;
 SET @DifficultyPercent = 30;
 SET @MinMovieYear = 1918;
 SET @MaxMovieYear = 2018;
