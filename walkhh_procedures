@@ -1,8 +1,10 @@
-#Set these at program start to whatever (preferably user set!)
-SET @MinNumVotes = 50000;
+# Set this at the start of php program, or before calling these functions!!!
+# Ideally set the difficulty by the user!
+SET @MinNumVotes = 10000;
 SET @DifficultyPercent = 30;
-SET @MinMovieYear = 1918;
-SET @MaxMovieYear = 2018;
+SET @MinMovieYear = 1000;
+SET @MaxMovieYear = 3000;
+
 
 /*
 gets the minimum number a of votes a movie can have when finding a random movie
@@ -76,8 +78,59 @@ CREATE PROCEDURE makeQuestionWhoWasLeadInRandMovie (OUT question VARCHAR(255),
     SET wrong3 = getRandomMovieId();
   END;
 
-#Test:
+#Test it:
 CALL makeQuestionWhoWasLeadInRandMovie(@q, @a, @w1, @w2, @w3);
 select concat ("", @q, "", @a) as '';
 SELECT * FROM Actor WHERE ActorID = @a;
 
+
+
+# Creates question asking what random movie 2 or more random actors starred in
+DROP PROCEDURE IF EXISTS makeQuestionWhatMovieStarsTheseActors;
+CREATE PROCEDURE makeQuestionWhatMovieStarsTheseActors(OUT question VARCHAR(255),
+                                                       OUT correctAnswer INT,
+                                                       OUT wrong1 INT,
+                                                       OUT wrong2 INT,
+                                                       OUT wrong3 INT)
+  BEGIN
+    SET @Min = getCustomMinNumVotes();
+
+    SELECT m.MovieID, GROUP_CONCAT(a.primaryName SEPARATOR ', ') INTO @TheMovie, @TheActors
+    FROM Movie m
+      LEFT JOIN MovieActor ON m.MovieID = MovieActor.MovieID
+      LEFT JOIN Actor a ON a.ActorID = MovieActor.ActorID
+    WHERE m.numVotes > @Min
+          AND (m.startYear >= @MinMovieYear AND m.startYear <= @MaxMovieYear)
+    GROUP BY m.MovieID
+    having count(distinct a.ActorID) >= 2
+    ORDER BY RAND()
+    LIMIT 0,1
+    ;
+
+    SET question = CONCAT("What movie did the actors ", @TheActors, " star in?");
+    SET correctAnswer = @TheMovie;
+    SET wrong1 = getRandomMovieId();
+    SET wrong2 = getRandomMovieId();
+    SET wrong3 = getRandomMovieId();
+  END;
+
+#Test it:
+CALL makeQuestionWhatMovieStarsTheseActors(@q, @a, @w1, @w2, @w3);
+select concat ("", @q, "") as '';
+SELECT * FROM Movie WHERE MovieID = @a;
+
+
+
+# Pick random actor id
+# (Unused right now)
+DROP FUNCTION IF EXISTS getRandomActorId;
+CREATE FUNCTION getRandomActorId()
+  RETURNS INT
+  BEGIN
+    SET @RandomActor =
+    (SELECT MovieID
+     FROM Movie
+     ORDER BY RAND()
+     LIMIT 1);
+    RETURN @RandomMovie;
+  END;
