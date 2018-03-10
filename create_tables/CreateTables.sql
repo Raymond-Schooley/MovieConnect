@@ -1,7 +1,7 @@
-SET @MinNumVotes = 1000;
-SET @MaxActorsPerMovie = 10;
+SET @MinNumVotes = 10000;
+SET @MaxActorsPerMovie = 5;
 
-DROP DATABASE ravschoo;
+DROP DATABASE IF EXISTS ravschoo;
 CREATE DATABASE ravschoo;
 USE ravschoo;
 
@@ -78,6 +78,18 @@ LOAD DATA LOCAL INFILE '*LOCATION*/name.basics.tsv/data.tsv' REPLACE INTO TABLE 
 Create 3 new tables from the raw data with trimmed and combined rows
  */
 
+# Determines gender from the profession string
+DROP FUNCTION IF EXISTS GETGENDER;
+CREATE FUNCTION GETGENDER(primaryProfession VARCHAR(128))
+  RETURNS CHAR(1)
+  BEGIN
+    IF primaryProfession LIKE '%actor%' THEN
+      RETURN 'm';
+    ELSE
+      RETURN 'f';
+    END IF;
+  END;
+
 /*
 Create Actor from namebasics_raw
 Convert nconst CHAR(9) to ActorID INT
@@ -85,8 +97,11 @@ Convert nconst CHAR(9) to ActorID INT
 DROP TABLE IF EXISTS Actor;
 CREATE TABLE Actor
     SELECT CONVERT(SUBSTRING(nb.nconst, 3), INT) AS ActorID,
-      nb.primaryName, nb.birthYear, nb.deathYear
+      nb.primaryName, nb.birthYear, nb.deathYear,
+           GETGENDER(nb.primaryProfession) AS Gender
     FROM namebasics_raw nb
+    WHERE (nb.primaryProfession LIKE '%actor%')
+ # WHERE (nb.primaryProfession LIKE '%actor%' OR nb.primaryProfession LIKE '%actress%')
 ;
 ALTER TABLE Actor ADD PRIMARY KEY (ActorID);
 
@@ -119,10 +134,12 @@ CREATE TABLE MovieActor_temp
            tp.ordering AS Importance, tp.category AS Job, tp.characters
     FROM titleprincipals_raw tp
     WHERE ordering <= @MaxActorsPerMovie
-          AND (category LIKE '%actor%' OR category LIKE '%actress%')
+          AND (category LIKE '%actor%')
+          #AND (category LIKE '%actor%' OR category LIKE '%actress%')
 ;
 
 # Delete duplicate (MovieID, ActorID) in MovieActor
+DROP TABLE IF EXISTS MovieActor;
 CREATE TABLE MovieActor (
   MovieID INT,
   ActorID INT,
@@ -145,24 +162,23 @@ DROP TABLE MovieActor_temp;
 delete MovieActor relations that aren't in Movie
 (Keep only relations with highly-voted on movies)
  */
-DELETE FROM MovieActor
-WHERE NOT EXISTS(SELECT NULL
-                 FROM Movie m
-                 WHERE m.MovieID = MovieID)
+DELETE ma FROM MovieActor ma
+  LEFT JOIN Movie m ON m.MovieID = ma.MovieID
+WHERE m.MovieID IS NULL
 ;
+
 /*
 delete movies that aren't in the final MovieActor table
  */
-DELETE FROM Movie
-WHERE NOT EXISTS(SELECT NULL
-                 FROM MovieActor ma
-                 WHERE ma.MovieID = MovieID)
+DELETE m FROM Movie m
+  LEFT JOIN MovieActor ma ON ma.MovieID = m.MovieID
+WHERE ma.MovieID IS NULL
 ;
+
 /*
 delete actors that aren't in the final MovieActor table
  */
-DELETE FROM Actor
-WHERE NOT EXISTS(SELECT NULL
-                 FROM MovieActor ma
-                 WHERE ma.ActorID = ActorID)
+DELETE a FROM Actor a
+  LEFT JOIN MovieActor ma ON ma.ActorID = a.ActorID
+WHERE ma.ActorID IS NULL
 ;
