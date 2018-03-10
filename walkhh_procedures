@@ -1,0 +1,21 @@
+SET @DifficultyPercent = 3;
+SET @MinMovieYear = 2014;
+SET @MaxMovieYear = 2018;
+
+# test out funct:
+select concat ("getminvotes ", getCustomMinNumVotes()) as '';
+
+/*
+gets the minimum number a of votes a movie can have when finding a random movie
+based off the setting @DifficultyPercent
+ */
+DROP FUNCTION IF EXISTS getCustomMinNumVotes;
+CREATE FUNCTION getCustomMinNumVotes()
+  RETURNS FLOAT
+  BEGIN
+    SET @highestNumVotes = (SELECT MAX(numVotes) FROM Movie) - @MinNumVotes;
+    SET @easynessPercent = 100.00 - @DifficultyPercent;
+    SET @customHighestNumVotes = @highestNumVotes * @easynessPercent / 100.00;
+    RETURN @customHighestNumVotes + @MinNumVotes;
+  END;
+;
