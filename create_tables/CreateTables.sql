@@ -1,10 +1,9 @@
-SET @MinNumVotes = 5000;
+SET @MinNumVotes = 1000;
 SET @MaxActorsPerMovie = 10;
 
-DROP DATABASE IF EXISTS moviequiz;
-CREATE DATABASE moviequiz;
-USE moviequiz;
-
+DROP DATABASE ravschoo;
+CREATE DATABASE ravschoo;
+USE ravschoo;
 
 /*
 (1)
@@ -26,18 +25,6 @@ Create database moviequiz
 Create an sql table for each file and load all data into them
 */
 
-# create table from name.basics.tsv/data.tsv
-DROP TABLE IF EXISTS namebasics_raw;
-CREATE TABLE namebasics_raw (
-  nconst CHAR(9) NOT NULL PRIMARY KEY,
-  primaryName VARCHAR(128),
-  birthYear INT,
-  deathYear INT,
-  primaryProfession VARCHAR(128),
-  knownForTitles VARCHAR(128)
-);
-LOAD DATA INFILE '*LOCATION*/name.basics.tsv/data.tsv' REPLACE INTO TABLE namebasics_raw IGNORE 1 LINES;
-
 # create table from title.basics.tsv/data.tsv
 DROP TABLE IF EXISTS titlebasics_raw;
 CREATE TABLE titlebasics_raw (
@@ -51,7 +38,16 @@ CREATE TABLE titlebasics_raw (
   runtimeMinutes INT,
   genres VARCHAR(32)
 );
-LOAD DATA INFILE '*LOCATION*/title.basics.tsv/data.tsv' REPLACE INTO TABLE titlebasics_raw IGNORE 1 LINES;
+LOAD DATA LOCAL INFILE '*LOCATION*/title.basics.tsv/data.tsv' REPLACE INTO TABLE titlebasics_raw IGNORE 1 LINES;
+
+# create table from title.ratings.tsv/data.tsv
+DROP TABLE IF EXISTS titleratings_raw;
+CREATE TABLE titleratings_raw (
+  tconst CHAR(9),
+  averageRating FLOAT,
+  numVotes INT
+);
+LOAD DATA LOCAL INFILE '*LOCATION*/title.ratings.tsv/data.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
 
 # create table from title.principals.tsv/data.tsv
 DROP TABLE IF EXISTS titleprincipals_raw;
@@ -63,16 +59,19 @@ CREATE TABLE titleprincipals_raw (
   job VARCHAR(512),
   characters VARCHAR(512)
 );
-LOAD DATA INFILE '*LOCATION*/title.principals.tsv/data.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
+LOAD DATA LOCAL INFILE '*LOCATION*/title.principals.tsv/data.tsv' REPLACE INTO TABLE titleprincipals_raw IGNORE 1 LINES;
 
-# create table from title.ratings.tsv/data.tsv
-DROP TABLE IF EXISTS titleratings_raw;
-CREATE TABLE titleratings_raw (
-  tconst CHAR(9),
-  averageRating FLOAT,
-  numVotes INT
+# create table from name.basics.tsv/data.tsv
+DROP TABLE IF EXISTS namebasics_raw;
+CREATE TABLE namebasics_raw (
+  nconst CHAR(9) NOT NULL PRIMARY KEY,
+  primaryName VARCHAR(128),
+  birthYear INT,
+  deathYear INT,
+  primaryProfession VARCHAR(128),
+  knownForTitles VARCHAR(128)
 );
-LOAD DATA INFILE '*LOCATION*/title.ratings.tsv/data.tsv' REPLACE INTO TABLE titleratings_raw IGNORE 1 LINES;
+LOAD DATA LOCAL INFILE '*LOCATION*/name.basics.tsv/data.tsv' REPLACE INTO TABLE namebasics_raw IGNORE 1 LINES;
 
 
 /*
@@ -103,16 +102,18 @@ CREATE TABLE Movie
     FROM titlebasics_raw tb, titleratings_raw tr
     WHERE tb.tconst = tr.tconst
           AND tr.numVotes >= @MinNumVotes
-          AND tb.titleType = 'movie';
+          AND tb.titleType = 'movie'
+          AND NOT tb.genres LIKE '%Animation%'
+          AND NOT tb.genres LIKE '%Documentary%'
 ;
 ALTER TABLE Movie ADD PRIMARY KEY (MovieID);
 
 /*
 Create MovieActor from titleprincipals_raw
-Keep only the top 5 actors from each movie
+Keep only the top X actors from each movie
  */
-DROP TABLE IF EXISTS MovieActor;
-CREATE TABLE MovieActor
+DROP TABLE IF EXISTS MovieActor_temp;
+CREATE TABLE MovieActor_temp
     SELECT CONVERT(SUBSTRING(tp.tconst, 3), INT) AS MovieID,
            CONVERT(SUBSTRING(tp.nconst, 3), INT) AS ActorID,
            tp.ordering AS Importance, tp.category AS Job, tp.characters
@@ -120,17 +121,20 @@ CREATE TABLE MovieActor
     WHERE ordering <= @MaxActorsPerMovie
           AND (category LIKE '%actor%' OR category LIKE '%actress%')
 ;
-/*
-Drop all duplicate (Same MovieID and ActorID) rows from MovieActor
-There is at least 1 instance of duplicate rows (MovieID 995411, ActorID 1075459).
- */
-ALTER IGNORE TABLE MovieActor
-  ADD UNIQUE INDEX movie_actor_index (MovieID, ActorID);
-/*
-Make MovieID, ActorID primary key after duplicates removed
- */
-ALTER TABLE MovieActor ADD PRIMARY KEY (MovieID, ActorID);
-/*
+
+# Delete duplicate (MovieID, ActorID) in MovieActor
+CREATE TABLE MovieActor (
+  MovieID INT,
+  ActorID INT,
+  Importance INT,
+  Job VARCHAR(64),
+  characters VARCHAR(512),
+  PRIMARY KEY (MovieID, ActorID)
+);
+INSERT IGNORE INTO MovieActor
+  SELECT * FROM MovieActor_temp
+;
+DROP TABLE MovieActor_temp;
 
 
 /*
