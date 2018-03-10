@@ -4,15 +4,16 @@ use ravschoo;
 Must set these before running the procedures (from php or wherever)
  */
 # Constant defaults for quiz settings
-SET @DefaultDifficultyPercent = 40;
+SET @MinNumVotes = 10000; #Needs to be the same as the value used when trimming the tables
+SET @DefaultDifficultyPercent = 60;
 SET @DefaultMinMovieYear = 0;
 SET @DefaultMaxMovieYear = 9999;
-SET @MinNumVotes = 10000; #Needs to be the same as the value used when trimming the tables
-# Dynamic quiz settings
-# Optionally set to non-default values by user
+SET @DefaultMinRelatedness = 2;
+# Dynamic quiz settings, optionally set to non-default values by user
 SET @DifficultyPercent = @DefaultDifficultyPercent;
 SET @MinMovieYear = @DefaultMinMovieYear;
 SET @MaxMovieYear = @DefaultMaxMovieYear;
+SET @MinRelatedness = @DefaultMinRelatedness; #Ex: Min. movies 2 actors must star in to be related
 
 
 
@@ -31,7 +32,7 @@ CREATE PROCEDURE makeQuestionWhoWasLeadInRandMovie (OUT question VARCHAR(255),
     SET @randomMovie = getRandomMovieId();
     SET question = CONCAT("Who was the lead actor in ", getMovieName(@randomMovie), "?");
 
-    SET @answerMovieID =
+    SET @answerActorID =
     (SELECT a.ActorID
      FROM MovieActor ma
        LEFT JOIN Movie m
@@ -46,14 +47,52 @@ CREATE PROCEDURE makeQuestionWhoWasLeadInRandMovie (OUT question VARCHAR(255),
      LIMIT 0,1
     );
 
-    SET a1 = getActorName(@answerMovieID);
+    SET a1 = getActorName(@answerActorID);
     SET a2 = getActorName(getRandomActorId());
     SET a3 = getActorName(getRandomActorId());
     SET a4 = getActorName(getRandomActorId());
   END;
 #Test it:
-# CALL makeQuestionWhoWasLeadInRandMovie(@q, @a, @w1, @w2, @w3);
-# SELECT (@q, @a, @w1, @w2, @w3);
+#  CALL makeQuestionWhoWasLeadInRandMovie(@q, @a, @w1, @w2, @w3);
+#  SELECT (@q, @a, @w1, @w2, @w3);
+
+
+# asks what movie a random actor starred in
+DROP PROCEDURE IF EXISTS makeQuestionWhatMovieRandActorLeadIn;
+CREATE PROCEDURE makeQuestionWhatMovieRandActorLeadIn (OUT question VARCHAR(255),
+                                                    OUT a1 VARCHAR(255),
+                                                    OUT a2 VARCHAR(255),
+                                                    OUT a3 VARCHAR(255),
+                                                    OUT a4 VARCHAR(255))
+  BEGIN
+    SET @Min = getCustomMinNumVotes();
+    SET @movieAnswer = getRandomMovieId();
+
+    SET @TheActorID =
+    (SELECT a.ActorID
+     FROM MovieActor ma
+       LEFT JOIN Movie m
+         ON ma.MovieID = m.MovieID
+       LEFT JOIN Actor a
+         ON ma.ActorID = a.ActorID
+     WHERE
+       m.MovieID = @movieAnswer
+       AND m.numVotes > @Min
+       AND (m.startYear >= @MinMovieYear AND m.startYear <= @MaxMovieYear)
+     ORDER BY Importance
+     LIMIT 0,1
+    );
+
+    SET question = CONCAT("What movie did ", getActorName(@TheActorID), " star in?");
+    SET a1 = getMovieName(@movieAnswer);
+    SET a2 = getMovieName(getRandomMovieId());
+    SET a3 = getMovieName(getRandomMovieId());
+    SET a4 = getMovieName(getRandomMovieId());
+  END;
+#Test it:
+# CALL makeQuestionWhatMovieRandActorLeadIn(@q, @a, @w1, @w2, @w3);
+# SELECT @a;
+# SELECT @q;
 
 
 # Creates question asking what random movie 2 or more random actors starred in
@@ -66,14 +105,14 @@ CREATE PROCEDURE makeQuestionWhatMovieStarsTheseActors(OUT question VARCHAR(255)
   BEGIN
     SET @Min = getCustomMinNumVotes();
 
-    SELECT m.MovieID, GROUP_CONCAT(a.primaryName SEPARATOR ', ') INTO @TheMovie, @TheActors
+    SELECT m.MovieID, GROUP_CONCAT(a.primaryName SEPARATOR ', and ') INTO @TheMovie, @TheActors
     FROM Movie m
       LEFT JOIN MovieActor ON m.MovieID = MovieActor.MovieID
       LEFT JOIN Actor a ON a.ActorID = MovieActor.ActorID
     WHERE m.numVotes > @Min
           AND (m.startYear >= @MinMovieYear AND m.startYear <= @MaxMovieYear)
     GROUP BY m.MovieID
-    having count(distinct a.ActorID) >= 2
+    having count(distinct a.ActorID) >= @MinRelatedness
     ORDER BY RAND()
     LIMIT 0,1
     ;
@@ -85,9 +124,43 @@ CREATE PROCEDURE makeQuestionWhatMovieStarsTheseActors(OUT question VARCHAR(255)
     SET a4 = getMovieName(getRandomMovieId());
   END;
 #Test it:
-# CALL makeQuestionWhatMovieStarsTheseActors(@q, @a, @w1, @w2, @w3);
-# SELECT (@q, @a, @w1, @w2, @w3);
+#  CALL makeQuestionWhatMovieStarsTheseActors(@q, @a, @w1, @w2, @w3);
+#  SELECT @q;
+# SELECT @a;
 
+
+
+# Creates question asking what random actor starred in 2 or more random movies
+DROP PROCEDURE IF EXISTS makeQuestionWhatActorStarredInTheseMovies;
+CREATE PROCEDURE makeQuestionWhatActorStarredInTheseMovies(OUT question VARCHAR(255),
+                                                       OUT a1 VARCHAR(255),
+                                                       OUT a2 VARCHAR(255),
+                                                       OUT a3 VARCHAR(255),
+                                                       OUT a4 VARCHAR(255))
+  BEGIN
+    SET @Min = getCustomMinNumVotes();
+
+    SELECT a.ActorID, GROUP_CONCAT(m.primaryTitle SEPARATOR ', and ') INTO @TheActor, @TheMovies
+    FROM Actor a
+      LEFT JOIN MovieActor ON a.ActorID = MovieActor.ActorID
+      LEFT JOIN Movie m ON m.MovieID = MovieActor.MovieID
+     WHERE m.numVotes > @Min
+           AND (m.startYear >= @MinMovieYear AND m.startYear <= @MaxMovieYear)
+    GROUP BY a.ActorID
+    having count(distinct m.MovieID) >= @MinRelatedness
+    ORDER BY RAND()
+    LIMIT 0,1
+    ;
+
+    SET question = CONCAT("What actor starred in the movies ", @TheMovies, "?");
+    SET a1 = getActorName(@TheActor);
+    SET a2 = getActorName(getRandomActorId());
+    SET a3 = getActorName(getRandomActorId());
+    SET a4 = getActorName(getRandomActorId());
+  END;
+# Test it:
+#   CALL makeQuestionWhatActorStarredInTheseMovies(@q, @a, @w1, @w2, @w3);
+#   SELECT (@q, @a, @w1, @w2, @w3);
 
 
 
@@ -140,7 +213,7 @@ DROP FUNCTION IF EXISTS getCustomMinNumVotes;
 CREATE FUNCTION getCustomMinNumVotes()
   RETURNS FLOAT
   BEGIN
-    SET @highestNumVotes = (SELECT MAX(numVotes) FROM Movie) - 10000;
+    SET @highestNumVotes = (SELECT MAX(numVotes) FROM Movie) - @MinNumVotes;
     SET @easynessPercent = 100.00 - @DifficultyPercent;
     SET @customHighestNumVotes = @highestNumVotes * @easynessPercent / 100.00;
     RETURN @customHighestNumVotes + @MinNumVotes;
