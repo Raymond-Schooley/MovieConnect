@@ -1,9 +1,7 @@
-SET @DifficultyPercent = 3;
-SET @MinMovieYear = 2014;
+SET @MinNumVotes = 100000;
+SET @DifficultyPercent = 30;
+SET @MinMovieYear = 1918;
 SET @MaxMovieYear = 2018;
-
-# test out funct:
-select concat ("getminvotes ", getCustomMinNumVotes()) as '';
 
 /*
 gets the minimum number a of votes a movie can have when finding a random movie
@@ -18,4 +16,67 @@ CREATE FUNCTION getCustomMinNumVotes()
     SET @customHighestNumVotes = @highestNumVotes * @easynessPercent / 100.00;
     RETURN @customHighestNumVotes + @MinNumVotes;
   END;
-;
+
+# Test it:
+select concat ("getminvotes ", getCustomMinNumVotes()) as '';
+
+
+# Pick random movie id
+DROP FUNCTION IF EXISTS getRandomMovieId;
+CREATE FUNCTION getRandomMovieId()
+  RETURNS INT
+  BEGIN
+    SET @Min = getCustomMinNumVotes();
+    SET @RandomMovie =
+    (SELECT MovieID
+     FROM Movie
+     WHERE
+       numVotes > @Min
+       AND (startYear >= @MinMovieYear AND startYear <= @MaxMovieYear)
+     ORDER BY RAND()
+     LIMIT 1);
+    RETURN @RandomMovie;
+  END;
+
+# Test it:
+SET @randMovieID = getRandomMovieId();
+SELECT * FROM Movie WHERE MovieID = @randMovieID;
+
+
+
+# asks who was the lead star of a random movie
+DROP PROCEDURE IF EXISTS makeQuestionWhoWasLeadInRandMovie;
+CREATE PROCEDURE makeQuestionWhoWasLeadInRandMovie (OUT question VARCHAR(255),
+                                                    OUT correctAnswer INT,
+                                                    OUT wrong1 INT,
+                                                    OUT wrong2 INT,
+                                                    OUT wrong3 INT)
+  BEGIN
+    SET @randomMovie = getRandomMovieId();
+    SET question = CONCAT("Who was the lead actor in ", getMovieName(@randomMovie), "?");
+
+    SET correctAnswer =
+    (SELECT a.ActorID
+     FROM MovieActor ma
+       LEFT JOIN Movie m
+         ON ma.MovieID = m.MovieID
+       LEFT JOIN Actor a
+         ON ma.ActorID = a.ActorID
+     WHERE
+       m.MovieID = @randomMovie
+       AND m.numVotes > @Min
+       AND (m.startYear >= @MinMovieYear AND m.startYear <= @MaxMovieYear)
+     ORDER BY Importance
+     LIMIT 0,1
+    );
+
+    SET wrong1 = getRandomMovieId();
+    SET wrong2 = getRandomMovieId();
+    SET wrong3 = getRandomMovieId();
+  END;
+
+#Test:
+CALL makeQuestionWhoWasLeadInRandMovie(@q, @a, @w1, @w2, @w3);
+select concat ("", @q, "", @a) as '';
+SELECT * FROM Actor WHERE ActorID = @a;
+
