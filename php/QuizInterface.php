@@ -40,8 +40,13 @@ if(isset($_POST['submit'])){
   $_SESSION['lowYear'] = $_POST['lowYear'];
   $_SESSION['highYear'] = $_POST['highYear'];
   $_SESSION['difficulty']= $_POST['difficulty'];
+  $_SESSION['tenMovies'] = $_POST['lowYear'];
+  $_SESSION['correctCount'] = 0;
   $tempDif = $_SESSION['difficulty'];
   $db->query("SET @DifficultyPercent = '$tempDif'");
+  $db->query("SET @MinMovieYear = '$lowYear'");
+  $db->query("SET @MaxMovieYear = '$highYear'");
+  $db->query("SET @MinNumVotes = 10000");
   header("Location: " .$location);
 
 }

@@ -13,31 +13,60 @@ if (!isset($db)) {
 $q = $db->query("SELECT username
       FROM USERS 
       WHERE username = '".$_SESSION['username']."'");
+
+$message = ($q) ? "Success" : die();
 $qn = $q->fetch();
+
 $username = $qn[0];
 $sql = $db->query("SELECT preferredName FROM USERS WHERE username = '".$_SESSION['username']."'");
+$message = ($sql) ? "Success" : die();
 $pNameR = $sql->fetch();
 $preferredName = $pNameR[0];
 
+$lowYear = $_SESSION['lowYear'];
+$highYear = $_SESSION['highYear'];
+$lowYear = $_SESSION['lowYear'];
+$difficulty = $_SESSION['difficulty'];
+
+$db->query("SET @DifficultyPercent = $difficulty");
+$db->query("SET @MinMovieYear = $lowYear");
+$db->query("SET @MaxMovieYear = $highYear");
+$db->query("SET @MinNumVotes = 10000");
+
+
 $sql = $db->query("SELECT type FROM USERS WHERE username = '".$_SESSION['username']."'");
+$message = ($sql) ? "Success" : die();
 $stype = $sql->fetch();
 $type = $stype[0];
 
-$temp = $_SESSION['tenMovies'];
 
-$sql= $db->query("CALL getMoviesByDecade('$temp')");
-$ten = $sql->fetchAll();
-
-$x = 0;
-$genTitle = $ten[$x]['primaryTitle'];
 $lowYear = $_SESSION['lowYear'];
 
-$sql = $db->query("CALL getMovieYearQuestion(@question, '$genTitle', $lowYear, @a2, @a3, @a4)");
 
-$temp = $db->query("SELECT @question, '1980',@a2, @a3, @a4");
+$sql = $db->query("CALL makeQuestionWhatMovieStarsTheseActors(@q, @a, @w1, @w2, @w3)");
+
+
+$temp = $db->query("SELECT @q, @a, @w1, @w2, @w3");
 $temp2 = $temp->fetchAll();
+$message = ($temp) ? "Success" : die();
+
+$possibleAnswers = array(0 => $temp2[0]['@w1'],
+                 1 => $temp2[0]['@w2'],
+                 2 => $temp2[0]['@w3'],
+                 3 => $temp2[0]['@a']);
 
 
+
+shuffle($possibleAnswers);
+
+
+
+
+$correctAnswer =$temp2[0]['@a'];
+var_dump($correctAnswer);
+
+
+var_dump($_SESSION['correctCount']);
 
 
 //$sql = "SELECT primaryName FROM Actor ORDER BY rand() LIMIT 3 ";
@@ -68,33 +97,68 @@ $temp2 = $temp->fetchAll();
           <div class="panel-heading text-center panel-relative">Welcome, <?php echo $preferredName; ?>. Are you ready to test your knowledge?</div>
           <div class="text-center">
 
-            <h3><?php echo $temp2[0]['@question'];?></h3>
+            <h3><?php echo $temp2[0]['@q'];?></h3>
             
                 <form role="form" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
                 <div class="form-group">
             <button class="btn btn-sm btn-primary btn-default" type="submit" name="A">
-             <?php echo $temp2[0]['@a2']?>
+             <?php 
+                
+
+                echo $possibleAnswers[0];?>
             </button>
             <button class="btn btn-sm btn-primary btn-default" type="submit" name="B">
-             <?php echo $temp2[0]['@a3'];?>
+             <?php 
+
+                echo $possibleAnswers[1];?>
             </button>
             <button class="btn btn-sm btn-primary btn-default" type="submit" name="C">
-             <?php echo $temp2[0]['@a4'];?>
+             <?php 
+                echo $possibleAnswers[2];?>
             </button>
             <button class="btn btn-sm btn-primary btn-default" type="submit" name="D">
-             <?php $temp = $db->query("SELECT startYear FROM Movie WHERE primaryTitle = '$genTitle'");
-                   $temp2 = $temp->fetch();
-                   echo $temp2[0];
-             ;?>
+             <?php 
+              
+               echo $possibleAnswers[3];
+
+             ?>
             </button>
           </div>
-                  <?php if(isset($_POST['D'])){
-                    $new_message = '<p class="alert-success">Correct</p>' ; 
+                  <?php 
+                  
+
+                  
+                  
+                  if(isset($_POST['A']) && strcmp($possibleAnswers[0], $temp2[0]['@a'])==0){
+                      
+                      $_SESSION['correctCount']++;
+                      $new_message = '<p class="alert-success">Correct</p>' ; 
+                    }else if(isset($_POST['B']) && strcmp($possibleAnswers[1], $temp2[0]['@a'])==0){
+                    
+                      $_SESSION['correctCount']++;
+
+                      $new_message = '<p class="alert-success">Correct</p>' ; 
+                      
+                    }else if(isset($_POST['C']) && strcmp($possibleAnswers[2], $temp2[0]['@a'])==0){
+                  
+                      $_SESSION['correctCount']++;
+
+                      $new_message = '<p class="alert-success">Correct</p>' ; 
+                      
+                    }else if(isset($_POST['D']) && strcmp($possibleAnswers[3],$temp2[0]['@a'])==0){
+                      $new_message = '<p class="alert-success">Correct</p>' ; 
+                      $_SESSION['correctCount']++;
+
+                      
+                    }else{
+                      $new_message = '<p class="alert-warning">Incorrect</p>' ; 
+                    }
+                    
+
                     echo $new_message;
-                   }else if(isset($_POST['A']) or isset($_POST['B']) or isset($_POST['C'])){
-                    $new_message = '<p class="alert-success">Incorrect</p>' ; 
-                    echo $new_message;
-                   }
+                    
+                   
+                   
                    ?>
             </form>
           </div>        

@@ -8,7 +8,7 @@ if(!isset($_SESSION['username']))
 {
   header("Location: Login.php");  
 }
-$page_type = $_SESSION['type'];
+//$page_type = $_SESSION['type'];
 
 // CHECK IF USER HAS RIGHTS TO THE PAGE
 if($page_type != 'public' && $page_type != $_SESSION['type'])
