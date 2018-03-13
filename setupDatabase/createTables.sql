@@ -174,3 +174,7 @@ DELETE a FROM Actor a
   LEFT JOIN MovieActor ma ON ma.ActorID = a.ActorID
 WHERE ma.ActorID IS NULL
 ;
+
+#Get rid of a couple of fields that are either not being used or are unnormalized.
+ALTER TABLE Movie DROP genres;
+ALTER TABLE Movie DROP titleType;
