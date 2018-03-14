@@ -178,3 +178,4 @@ WHERE ma.ActorID IS NULL
 #Get rid of a couple of fields that are either not being used or are unnormalized.
 ALTER TABLE Movie DROP genres;
 ALTER TABLE Movie DROP titleType;
+ALTER TABLE Movie DROP characters;
