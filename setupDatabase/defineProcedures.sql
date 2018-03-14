@@ -131,6 +131,25 @@ CREATE PROCEDURE makeQuestionWhatActorStarredInTheseMovies(OUT question VARCHAR(
   END;
 
 
+# Create question asking what year a random movie was made in
+DROP PROCEDURE IF EXISTS createQuestionWhatYearWasRandMovie;
+CREATE PROCEDURE createQuestionWhatYearWasRandMovie(OUT question VARCHAR(255),
+                                                    OUT a1 VARCHAR(255),
+                                                    OUT a2 VARCHAR(255),
+                                                    OUT a3 VARCHAR(255),
+                                                    OUT a4 VARCHAR(255))
+  BEGIN
+    SET @randMovie = getRandomMovieId();
+    SET question = CONCAT("What year was ", getMovieName(@randMovie), " made?");
+    SET a1 = getMovieYear(@randMovie);
+    SET a2 = getRandomYear(a1);
+    Set a3 = getRandomYear(a1);
+    Set a4 = getRandomYear(a1);
+  END;
+CALL createQuestionWhatYearWasRandMovie(@q, @a, @w1, @w2, @w3);
+SELECT @q, @a, @w1, @w2, @w3;
+
+
 
 /*
 Utility procedures:
@@ -170,6 +189,17 @@ CREATE FUNCTION getRandomActorId()
   END;
 
 
+# Gets a random year
+DROP FUNCTION getRandomYear;
+DELIMITER $
+CREATE FUNCTION getRandomYear(a1 INT)
+  RETURNS INTEGER
+  BEGIN
+    RETURN a1 - 5 + FLOOR(1 + RAND() * 10);
+  END $
+DELIMITER ;
+
+
 /*
 gets the minimum number a of votes a movie can have when finding a random movie
 based off the setting @DifficultyPercent
@@ -193,6 +223,17 @@ CREATE FUNCTION getActorName(AID INT)
   BEGIN
     RETURN (SELECT A.primaryName FROM Actor A
     WHERE A.ActorId = AID);
+  END;
+
+
+# Gets the year of a movie based on its ID
+DROP FUNCTION IF EXISTS getMovieYear;
+CREATE FUNCTION getMovieYear(MID INT)
+  RETURNS INT
+  BEGIN
+    RETURN (SELECT M.startYear
+            FROM Movie M
+    WHERE M.MovieId = MID);
   END;
 
 
