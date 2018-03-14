@@ -1,9 +1,7 @@
 <?php 
-
 if(!isset($_SESSION)){
     session_start();
 }
-
 // SET $page_type = 'student','teacher','public'
 $page_type = 'quizzer';
 require('inc.header.php');
@@ -15,26 +13,22 @@ if (!isset($db)) {
     $db = get_connection();
 }
 
+
 $q = $db->query("SELECT username
       FROM USERS 
       WHERE username = '".$_SESSION['username']."'");
+$message = ($q) ? "Success" : die();
+
+
 
 $qn = $q->fetch();
-
 $username = $qn[0];
 $sql = $db->query("SELECT preferredName FROM USERS WHERE username = '".$_SESSION['username']."'");
+$message = ($sql) ? "Success" : die();
+
+
 $pNameR = $sql->fetch();
 $preferredName = $pNameR[0];
-
-$sql = $db->query("SELECT type FROM USERS WHERE username = '".$_SESSION['username']."'");
-$stype = $sql->fetch();
-$type = $stype[0];
-$message = ($q) ? "Success" : die();
-if(isset($_POST['submit'])){
-  $location = "Quiz.php";
-  header("Location: " .$location);
-
-}
 
 
 ?>
@@ -58,22 +52,38 @@ if(isset($_POST['submit'])){
       </div>
       <div class="col-sm-12">
         <div class="panel panel-default">
-          <div class="panel-heading text-center panel-relative">Welcome, <?php echo $preferredName; ?>. Are you ready to test your knowledge?</div>
+          <div class="panel-heading text-center panel-relative">Congratulations, <?php echo $preferredName; ?>. You have finished the quiz</div>
           <div class="text-center">
 
-            <h3>Select quiz type</h3>
-
-        		    <input type="text" placeholder="Select quiz type" name="type" class="row"/>
+            <h3>You scored <?php echo $_SESSION['correctCount']?> out of 10</h3>
+            
                 <form role="form" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
                 <div class="form-group">
-		        <button class="btn btn-sm btn-primary btn-default" type="submit" name="submit">
-			       submit
-		        </button>
-		      </div>
+            <button class="btn btn-sm btn-primary btn-default" type="submit" name="try">
+                TRY AGAIN
+            </button>
+            <button class="btn btn-sm btn-primary btn-default" type="submit" name="back">
+                EXIT
+            </button>
+
+            
+          </div>
+                  <?php 
+                    if(isset($_POST['try'])){
+                      $location = 'QuizInterface.php';
+                      header("Location: " .$location);
+                    } else if(isset($_POST['back'])){
+                      $location = 'Login.php';
+
+                      header("Location: " .$location);
+
+                    }
+
+                   ?>
             </form>
           </div>        
         </div>
       </div>
     </div>
  </div>
- <?php include("./inc.footer.php");?>
+<?php include("./inc.footer.php");?>

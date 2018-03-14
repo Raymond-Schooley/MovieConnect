@@ -43,50 +43,10 @@ if(isset($_POST['add'])){
 
 if(isset($_POST['delete'])){
   $temp = $_POST['delUserName'];
-  $db->query("DELETE FROM USERS WHERE username = '$temp'");
+  $db->query("DELETE FROM USERS WHERE usernames = '$temp'");
   
 }
-
-
-/*
-$db->query("INSERT INTO MOVIE (Id, PrimaryTitle, RuntimeMinutes, Genres, AverageRating ) VALUES ('testid', ".$_POST['movieName'].", ".$_POST['runTime'].", ".$_POST['genre']."),".$_POST['rating']." ");
-
-// HANDLE NEW COURSES USING POST
-/*
-if(isset($_GET['action']))
-{
-    // MAKE SURE THE SESSION USER IS THE SAME AS THE USER REQUEST.
-      
-      switch ($_GET['action']) {
-      case 'add':
-        $q = $db->prepare("INSERT INTO MOVIE (Id, PrimaryTitle, Genres, RuntimeMinutes, AverageRating)VALUES (".$_POST['movieName']."
-                                                      , ".$_POST['genre'].", ".$_POST['runTime']." ,".$_POST['rating']." ");
-        if($q->execute(array(':course'=>$_GET['cn'])))
-          $mod_message = '<p class="alert-success">Course deactivated.</p>';
-        break;
-      case 'delete':
-        // TWO THINGS NEEDED HERE, NEED TO CLEAR ALL REGISTRATIONS BEFORE DELETING THE COURSE
-        $reg = $db->prepare("DELETE FROM Registration WHERE course_number = :course");
-        if($reg->execute(array(':course'=> $_GET['cn']))) {
-          $mod_message .= '<p class="alert-success">' . $reg->rowCount() . ' student(s) successfully removed from course';
-        }
-        $q = $db->prepare("DELETE FROM Course WHERE course_number = :course");
-        if($q->execute(array(':course'=> $_GET['cn'])))
-          $mod_message .=  '<p class="alert-success">Course successfully deleted</p>';
-        break;
-      default:
-        $mod_message = '<p class="alert-warning">Unable to perform the requested action: '.$_GET['action'].'</p>';
-        break;
-      }
-     
-      $mod_message = '<p class="alert-warning">Unable to perform the requested action.</p>';
-        
-}
-
-*/
-
-
-
+$message = ($q) ? "Success" : die();
 
 
 ?>

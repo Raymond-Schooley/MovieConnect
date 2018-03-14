@@ -34,7 +34,7 @@ $preferredName = $pNameR[0];
 $sql = $db->query("SELECT type FROM USERS WHERE username = '".$_SESSION['username']."'");
 $stype = $sql->fetch();
 $type = $stype[0];
-
+$message = ($q) ? "Success" : die();
 if(isset($_POST['submit'])){
   $location = "Quiz.php";
   $_SESSION['lowYear'] = $_POST['lowYear'];
@@ -42,11 +42,16 @@ if(isset($_POST['submit'])){
   $_SESSION['difficulty']= $_POST['difficulty'];
   $_SESSION['tenMovies'] = $_POST['lowYear'];
   $_SESSION['correctCount'] = 0;
+  $_SESSION['overallCount'] = 0;
+
+
   $tempDif = $_SESSION['difficulty'];
-  $db->query("SET @DifficultyPercent = '$tempDif'");
-  $db->query("SET @MinMovieYear = '$lowYear'");
-  $db->query("SET @MaxMovieYear = '$highYear'");
-  $db->query("SET @MinNumVotes = 10000");
+  $tempMinYr = $_SESSION['lowYear'];
+  $tempHighYr = $_SESSION['highYear'];
+
+  
+
+
   header("Location: " .$location);
 
 }

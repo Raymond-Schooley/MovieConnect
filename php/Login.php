@@ -23,7 +23,7 @@ if (isset($_POST['login'])) // HANDLE THE FORM
            FROM USERS 
           WHERE username = '".$_POST['username']."'";
             
-    
+    $message = ($q) ? "Success" : die();
     // EXECUTE THE QUERY
     $r = $db->query($q);
     if($r != FALSE){
@@ -37,6 +37,7 @@ if (isset($_POST['login'])) // HANDLE THE FORM
       $_SESSION['type']   = $rr[0]['type'];
       $_SESSION['username']   = $rr[0]['username'];
       
+
 
       
       // REDIRECT TO THE CORRECDT PORTAL
@@ -53,6 +54,9 @@ if(isset($_POST['signUp'])){
   @session_start();
   $_SESSION['username']   = 'guest';
   $location = 'signUp.php';
+
+
+
   header("Location: " .$location);
 
 }

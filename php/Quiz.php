@@ -5,74 +5,72 @@ if(!isset($_SESSION)){
 // SET $page_type = 'student','teacher','public'
 $page_type = 'quizzer';
 require('inc.header.php');
+
+
 # CONNECT TO DATABASE TO GET STUENT INFO
 if (!isset($db)) {
     require_once('inc.dbc.php');
     $db = get_connection();
 }
+
+//Get username
 $q = $db->query("SELECT username
       FROM USERS 
       WHERE username = '".$_SESSION['username']."'");
 
-$message = ($q) ? "Success" : die();
-$qn = $q->fetch();
+$name = $q->fetch();
+$username = $name[0];
 
-$username = $qn[0];
+//Get preferred name
 $sql = $db->query("SELECT preferredName FROM USERS WHERE username = '".$_SESSION['username']."'");
-$message = ($sql) ? "Success" : die();
 $pNameR = $sql->fetch();
 $preferredName = $pNameR[0];
+
 
 $lowYear = $_SESSION['lowYear'];
 $highYear = $_SESSION['highYear'];
 $lowYear = $_SESSION['lowYear'];
 $difficulty = $_SESSION['difficulty'];
 
+
+//Set necessary variables for quiz
 $db->query("SET @DifficultyPercent = $difficulty");
 $db->query("SET @MinMovieYear = $lowYear");
 $db->query("SET @MaxMovieYear = $highYear");
 $db->query("SET @MinNumVotes = 10000");
+$db->query("SET @MinRelatedness = 2");
 
-
+//Get user type. Admin or Quiz taker.
 $sql = $db->query("SELECT type FROM USERS WHERE username = '".$_SESSION['username']."'");
-$message = ($sql) ? "Success" : die();
 $stype = $sql->fetch();
 $type = $stype[0];
 
-
-$lowYear = $_SESSION['lowYear'];
-
-
-$sql = $db->query("CALL makeQuestionWhatMovieStarsTheseActors(@q, @a, @w1, @w2, @w3)");
-
+//Random number generator for different questions.
+$rng = rand(0,4);
+//Different quiz questions.
+if($rng == 0){
+  $sql = $db->query("CALL makeQuestionWhatMovieStarsTheseActors(@q, @a, @w1, @w2, @w3)");
+}else if($rng == 1){
+  $sql = $db->query("CALL makeQuestionWhoWasLeadInRandMovie(@q, @a, @w1, @w2, @w3)");
+}else if($rng == 2){
+  $sql = $db->query("CALL makeQuestionWhatActorStarredInTheseMovies(@q, @a, @w1, @w2, @w3)");
+}else if($rng == 3){
+  $sql = $db->query("CALL createQuestionWhatYearWasRandMovie(@q, @a, @w1, @w2, @w3)");
+}else {
+  $sql = $db->query("CALL makeQuestionWhatMovieRandActorLeadIn(@q, @a, @w1, @w2, @w3)");
+}
 
 $temp = $db->query("SELECT @q, @a, @w1, @w2, @w3");
-$temp2 = $temp->fetchAll();
+$answers = $temp->fetchAll();
 $message = ($temp) ? "Success" : die();
+$message = ($q) ? "Success" : die();
+if($_SESSION['overallCount'] == 9){
 
-$possibleAnswers = array(0 => $temp2[0]['@w1'],
-                 1 => $temp2[0]['@w2'],
-                 2 => $temp2[0]['@w3'],
-                 3 => $temp2[0]['@a']);
+    $location = 'Result.php';
+    header("Location: " . $location);
+}
 
-
-
-shuffle($possibleAnswers);
-
-
-
-
-$correctAnswer =$temp2[0]['@a'];
-var_dump($correctAnswer);
-
-
-var_dump($_SESSION['correctCount']);
-
-
-//$sql = "SELECT primaryName FROM Actor ORDER BY rand() LIMIT 3 ";
-//$result = $db->query($sql);
-//$actors = $result->fetchAll();
-
+$message = ($sql) ? "Success" : die();
 ?>
  
 <body>
@@ -97,65 +95,52 @@ var_dump($_SESSION['correctCount']);
           <div class="panel-heading text-center panel-relative">Welcome, <?php echo $preferredName; ?>. Are you ready to test your knowledge?</div>
           <div class="text-center">
 
-            <h3><?php echo $temp2[0]['@q'];?></h3>
+            <h3><?php echo $answers[0]['@q'];?></h3>
             
                 <form role="form" method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
                 <div class="form-group">
             <button class="btn btn-sm btn-primary btn-default" type="submit" name="A">
              <?php 
                 
-
-                echo $possibleAnswers[0];?>
+                echo $answers[0]['@w1'];?>
             </button>
             <button class="btn btn-sm btn-primary btn-default" type="submit" name="B">
              <?php 
-
-                echo $possibleAnswers[1];?>
+                echo $answers[0]['@w2'];?>
             </button>
             <button class="btn btn-sm btn-primary btn-default" type="submit" name="C">
              <?php 
-                echo $possibleAnswers[2];?>
+                echo $answers[0]['@w3'];?>
             </button>
             <button class="btn btn-sm btn-primary btn-default" type="submit" name="D">
              <?php 
               
-               echo $possibleAnswers[3];
-
+               echo $answers[0]['@a'];
              ?>
             </button>
           </div>
                   <?php 
                   
+                  
+                  if($_SERVER['REQUEST_METHOD'] === 'POST'){
 
-                  
-                  
-                  if(isset($_POST['A']) && strcmp($possibleAnswers[0], $temp2[0]['@a'])==0){
+                     if(isset($_POST['D'])){
                       
                       $_SESSION['correctCount']++;
+                      $_SESSION['overallCount']++;
                       $new_message = '<p class="alert-success">Correct</p>' ; 
-                    }else if(isset($_POST['B']) && strcmp($possibleAnswers[1], $temp2[0]['@a'])==0){
+                    }else if(isset($_POST['B'])|| isset($_POST['A']) || isset($_POST['C']) ){
                     
-                      $_SESSION['correctCount']++;
-
-                      $new_message = '<p class="alert-success">Correct</p>' ; 
-                      
-                    }else if(isset($_POST['C']) && strcmp($possibleAnswers[2], $temp2[0]['@a'])==0){
-                  
-                      $_SESSION['correctCount']++;
-
-                      $new_message = '<p class="alert-success">Correct</p>' ; 
-                      
-                    }else if(isset($_POST['D']) && strcmp($possibleAnswers[3],$temp2[0]['@a'])==0){
-                      $new_message = '<p class="alert-success">Correct</p>' ; 
-                      $_SESSION['correctCount']++;
-
-                      
-                    }else{
+                      $_SESSION['overallCount']++;
                       $new_message = '<p class="alert-warning">Incorrect</p>' ; 
+                      
                     }
                     
-
                     echo $new_message;
+
+
+                  }
+                 
                     
                    
                    
@@ -167,4 +152,3 @@ var_dump($_SESSION['correctCount']);
     </div>
  </div>
 <?php include("./inc.footer.php");?>
- 
