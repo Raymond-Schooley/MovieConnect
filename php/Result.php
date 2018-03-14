@@ -13,14 +13,14 @@ if (!isset($db)) {
     $db = get_connection();
 }
 
-
+//Get username
 $q = $db->query("SELECT username
       FROM USERS 
       WHERE username = '".$_SESSION['username']."'");
 $message = ($q) ? "Success" : die();
 
 
-
+//Get preferred name
 $qn = $q->fetch();
 $username = $qn[0];
 $sql = $db->query("SELECT preferredName FROM USERS WHERE username = '".$_SESSION['username']."'");

@@ -10,10 +10,6 @@ $page_type = 'quizzer';
 require('inc.header.php');
 
 
-
-
-
-
 # CONNECT TO DATABASE TO GET STUENT INFO
 if (!isset($db)) {
     require_once('inc.dbc.php');
@@ -36,6 +32,8 @@ $stype = $sql->fetch();
 $type = $stype[0];
 $message = ($q) ? "Success" : die();
 if(isset($_POST['submit'])){
+
+  //Set global variables.
   $location = "Quiz.php";
   $_SESSION['lowYear'] = $_POST['lowYear'];
   $_SESSION['highYear'] = $_POST['highYear'];
@@ -45,9 +43,6 @@ if(isset($_POST['submit'])){
   $_SESSION['overallCount'] = 0;
 
 
-  $tempDif = $_SESSION['difficulty'];
-  $tempMinYr = $_SESSION['lowYear'];
-  $tempHighYr = $_SESSION['highYear'];
 
   
 
