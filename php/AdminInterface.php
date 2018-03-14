@@ -1,9 +1,15 @@
 <?php 
+/*
+This class is what the user sees if they sign in as an administrator. It shows text boxes and buttons for updating certain information and deleting
+adding users. 
+
+AUthor: Igor Kalezic
+*/
 if(!isset($_SESSION)){
     session_start();
 }
 
-// SET $page_type = 'student','teacher','public'
+// SET $page_type = 'quizzer','admin','guest'
 $page_type = 'admin';
 require('inc.header.php');
 

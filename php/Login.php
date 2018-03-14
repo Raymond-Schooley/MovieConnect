@@ -1,6 +1,10 @@
 <?php
 
+/*
+Login page. Takes input, validates the user and redirects accordingly. Sets session variables.
 
+Author: Igor Kalezic
+*/
 
 
 if (isset($_POST['login'])) // HANDLE THE FORM

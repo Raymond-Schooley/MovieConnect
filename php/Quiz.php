@@ -1,6 +1,11 @@
 
 <?php 
+/*
+Class for the quiz page. This class sets the necessary variables, selects the quiz questions, displays them, takes the answer from the user
+and counts the correct amount of questions answered.
 
+Author: Igor Kalezic
+*/
 if(!isset($_SESSION)){
     session_start();
 }

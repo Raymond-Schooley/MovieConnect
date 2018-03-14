@@ -1,11 +1,16 @@
 
 <?php 
+/*
+This class is where the user inputs what year range the user wants the movies to be in and what difficulty the quiz should be.
+It sets the necessary variables needed for the database to function properly.
 
+Author: Igor Kalezic
+*/
 if(!isset($_SESSION)){
     session_start();
 }
 
-// SET $page_type = 'student','teacher','public'
+// SET $page_type = 'quizzer','admin','guest'
 $page_type = 'quizzer';
 require('inc.header.php');
 
@@ -41,11 +46,6 @@ if(isset($_POST['submit'])){
   $_SESSION['tenMovies'] = $_POST['lowYear'];
   $_SESSION['correctCount'] = 0;
   $_SESSION['overallCount'] = 0;
-
-
-
-  
-
 
   header("Location: " .$location);
 

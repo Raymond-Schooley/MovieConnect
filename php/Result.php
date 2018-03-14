@@ -1,4 +1,10 @@
 <?php 
+/*
+This class is the results page of the quiz. It displays how many questions the quiz taker got correct and how many were asked(10).
+
+Author Igor Kalezic.
+*/
+
 if(!isset($_SESSION)){
     session_start();
 }

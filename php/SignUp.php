@@ -1,5 +1,10 @@
 
 <?php 
+/*
+This class is the sign up page for new users. Takes input and updates database accordingly.
+
+Author: Igor Kalezic
+*/
 if(!isset($_SESSION)){
     session_start();
 }

@@ -1,4 +1,9 @@
 <?php 
+/*
+This class is what checks the user type and redirects accordingly.
+Author: Kevin Anderson.
+
+*/
 if(!isset($_SESSION)){
   	session_start();
 }
